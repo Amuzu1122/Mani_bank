@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { Chart } from 'chart.js/auto'
 
 function Dashboard({ token, onLogout }) {
   const [userData, setUserData] = useState(null)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const storedToken = token || localStorage.getItem('authToken')
+  const chartRef = useRef(null)
+  const chartInstance = useRef(null)
 
   useEffect(() => {
+    if (!storedToken) {
+      onLogout()
+      navigate('/login')
+      return
+    }
     const fetchDashboard = async () => {
       try {
         const response = await axios.get('http://localhost:8000/api/dashboard/', {
-          headers: { Authorization: `Token ${token}` },
+          headers: { Authorization: `Token ${storedToken}` },
         })
+        console.log('Dashboard Data:', response.data) // Debug log
         setUserData(response.data)
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load dashboard')
@@ -23,7 +33,32 @@ function Dashboard({ token, onLogout }) {
       }
     }
     fetchDashboard()
-  }, [token, navigate, onLogout])
+  }, [storedToken, navigate, onLogout])
+
+  useEffect(() => {
+    if (userData && chartRef.current && userData.transactions) {
+      if (chartInstance.current) chartInstance.current.destroy()
+      const ctx = chartRef.current.getContext('2d')
+      chartInstance.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: userData.transactions.map(t => t.date || 'Unknown'),
+          datasets: [{
+            label: 'Transaction Amount',
+            data: userData.transactions.map(t => t.amount || 0),
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } },
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      })
+    }
+  }, [userData])
 
   const handleLogout = () => {
     onLogout()
@@ -31,64 +66,92 @@ function Dashboard({ token, onLogout }) {
   }
 
   if (error) return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <p className="text-red-500">{error}</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <p className="text-red-600 text-lg font-medium">{error}</p>
     </div>
   )
 
   if (!userData) return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <p>Loading...</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <p className="text-gray-600 text-lg font-medium">Loading...</p>
     </div>
   )
 
+  const totalBalance = userData.accounts?.reduce((sum, acc) => sum + (acc.balance || 0), 0) || 0
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Welcome, {userData.first_name} {userData.last_name}</h2>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600"
-          >
-            Logout
-          </button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-lg shadow-md">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome, {userData.first_name} {userData.last_name}</h1>
+          <p className="text-xl text-gray-600 mt-2">Total Balance: ${totalBalance.toFixed(2)}</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Account Details</h3>
-            <p><strong>Email:</strong> {userData.email}</p>
-            <p><strong>Username:</strong> {userData.username}</p>
-            <p><strong>Phone:</strong> {userData.phone_number || 'Not provided'}</p>
-            <p><strong>Date of Birth:</strong> {userData.date_of_birth || 'Not provided'}</p>
-            <p><strong>Address:</strong> {userData.address || 'Not provided'}</p>
-            <p><strong>Email Verified:</strong> {userData.is_email_verified ? 'Yes' : 'No'}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Account</h3>
-            <p><strong>Account Number:</strong> {userData.account.account_number}</p>
-            <p><strong>Type:</strong> {userData.account.account_type}</p>
-            <p><strong>Balance:</strong> ${userData.account.balance}</p>
-            <p><strong>Status:</strong> {userData.account.status}</p>
-            {userData.account_status_message && (
-              <p className="text-red-500 mt-2">{userData.account_status_message}</p>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"
+        >
+          Logout
+        </button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Accounts</h2>
+        <div className="space-y-4">
+          {userData.accounts && userData.accounts.length > 0 ? (
+            userData.accounts.map((acc, index) => (
+              <div key={index} className="border-b pb-2">
+                <p className="text-gray-900 font-medium">Account #{acc.account_number || 'N/A'}</p>
+                <p className="text-gray-600">Type: {acc.account_type || 'N/A'}</p>
+                <p className="text-gray-600">Balance: ${acc.balance || 0}</p>
+                <p className="text-gray-600">Status: {acc.status || 'N/A'}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No accounts found.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Transactions</h2>
+          <div className="space-y-4 max-h-64 overflow-y-auto">
+            {userData.transactions && userData.transactions.length > 0 ? (
+              userData.transactions.slice(0, 5).map((trans, index) => (
+                <div key={index} className="border-b pb-2">
+                  <p className="text-gray-900 font-medium">{trans.description || 'N/A'}</p>
+                  <p className="text-gray-600">Amount: ${trans.amount || 0}</p>
+                  <p className="text-gray-600">Date: {trans.date || 'N/A'}</p>
+                  <p className="text-gray-600">Status: {trans.status || 'N/A'}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No recent transactions.</p>
             )}
           </div>
         </div>
-        <div className="mt-6">
-          <button
-            onClick={() => navigate('/transactions')}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 mr-2"
-          >
-            View Transactions
-          </button>
-          <button
-            onClick={() => navigate('/transactions/create')}
-            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-          >
-            Create Transaction
-          </button>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Transaction Reports</h2>
+          <div className="h-64">
+            <canvas ref={chartRef}></canvas>
+          </div>
         </div>
+      </div>
+
+      <div className="mt-6 flex space-x-4">
+        <button
+          onClick={() => navigate('/transactions')}
+          className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-200"
+        >
+          View All Transactions
+        </button>
+        <button
+          onClick={() => navigate('/transactions/create')}
+          className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition duration-200"
+        >
+          Create Transaction
+        </button>
       </div>
     </div>
   )

@@ -5,8 +5,8 @@ from django.utils.timezone import now
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ['id', 'recipient_account', 'amount', 'description', 'transaction_type', 'status', 'date']
-        read_only_fields = ['id', 'status', 'date']
+        fields = ['id', 'recipient_account', 'amount','account', 'description', 'transaction_type', 'status', 'date']
+        read_only_fields = ['id', 'status','account','date']
 
     def validate(self, data):
         # Ensure only authenticated user's account can be used
@@ -45,8 +45,8 @@ class AccountSerializer(serializers.ModelSerializer):
         return TransactionSerializer(recent_transactions, many=True).data
 
 class UserDashboardSerializer(serializers.ModelSerializer):
-    account = AccountSerializer(source='account', read_only=True)
+    account = AccountSerializer(many = True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 'address', 'is_email_verified', 'account']
+        fields = ['first_name', 'last_name', 'email', 'is_email_verified', 'accounts', 'transactions']

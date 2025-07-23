@@ -24,6 +24,7 @@ function EmailVerification() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Email Verification</h2>
+        <p>Please wait while we verify your email address</p>
         <p className={message.includes('success') ? 'text-green-500' : 'text-red-500'}>
           {message}
         </p>

@@ -1,7 +1,8 @@
 from django.urls import path
-from accounts.views import LoginView,UserDashboardView, TransactionCreateView, TransactionListView, VerifyEmailView, approve_transaction
+from accounts.views import RegisterView, LoginView, UserDashboardView, TransactionCreateView, TransactionListView, VerifyEmailView, approve_transaction
 
 urlpatterns = [
+    path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('dashboard/', UserDashboardView.as_view(), name='user_dashboard'),
     path('transactions/create/', TransactionCreateView.as_view(), name='transaction_create'),

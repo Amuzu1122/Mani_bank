@@ -1,44 +1,39 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useState } from 'react'
-import Login from './components/Login'
-import Dashboard from './components/Dashboard'
-import EmailVerification from './components/EmailVerification'
-import TransactionCreate from './components/TransactionCreate'
-import TransactionList from './components/TransactionList'
+import React, { useState } from 'react'
+import { Route, Routes } from 'react-router-dom' // Removed BrowserRouter import
+import Login from './components/Login.jsx'
+import Dashboard from './components/Dashboard.jsx'
+import Transactions from './components/Transactions.jsx'
+import TransactionCreate from './components/TransactionCreate.jsx'
+import EmailVerification from './components/EmailVerification.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('token') || null)
+  const [token, setToken] = useState(localStorage.getItem('authToken'))
 
   const handleLogin = (newToken) => {
     setToken(newToken)
-    localStorage.setItem('token', newToken)
+    localStorage.setItem('authToken', newToken)
   }
 
   const handleLogout = () => {
     setToken(null)
-    localStorage.removeItem('token')
+    localStorage.removeItem('authToken')
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/verify-email/:token" element={<EmailVerification />} />
-        <Route
-          path="/dashboard"
-          element={token ? <Dashboard token={token} onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/transactions/create"
-          element={token ? <TransactionCreate token={token} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/transactions"
-          element={token ? <TransactionList token={token} /> : <Navigate to="/login" />}
-        />
-        <Route path="/" element={<Navigate to="/login" />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
+      <Route path="/dashboard" element={
+        <ErrorBoundary>
+          <Dashboard token={token} onLogout={handleLogout} />
+        </ErrorBoundary>
+      } />
+      <Route path="/transactions" element={<Transactions token={token} />} />
+      <Route path="/transactions/create" element={<TransactionCreate token={token} />} />
+
+      <Route path="/verify-email/:token" element={<EmailVerification />} />
+      <Route path="/" element={<Login onLogin={handleLogin} />} />
+    </Routes>
   )
 }
 

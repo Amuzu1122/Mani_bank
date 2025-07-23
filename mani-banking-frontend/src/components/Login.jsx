@@ -20,6 +20,7 @@ function Login({ onLogin }) {
         },
       })
       onLogin(response.data.token)
+      localStorage.setItem('authToken', response.data.token)
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed')

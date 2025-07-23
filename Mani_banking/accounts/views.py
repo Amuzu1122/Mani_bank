@@ -1,3 +1,6 @@
+import uuid
+from django.utils.crypto import get_random_string
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -52,6 +55,11 @@ class RegisterView(APIView):
                 last_name=last_name,
                 password=password
             )
+            #Generate verification Token
+            token = get_random_string(length=64)
+            user.email_verification_token = token
+            user.email_verification_token_expires = timezone.now() + timezone.timedelta(days = 1)
+            user.save()
             return Response(
                 {"message": "User registered successfully. Please verify your email."},
                 status=status.HTTP_201_CREATED
@@ -113,12 +121,16 @@ class UserDashboardView(APIView):
         try:
             serializer = UserDashboardSerializer(user, context={'request': request})
             response_data = serializer.data
-            account = user.account
-            if account.status != 'active':
-                response_data['account_status_message'] = (
-                    f"Your account is {account.status}. "
-                    f"{'Contact support to reactivate.' if account.status == 'frozen' else 'This account cannot perform transactions.'}"
-                )
+            accounts = user.accounts.all()
+            if accounts.exists():
+                first_account = accounts.first()
+                if first_account.status != 'active':
+                    response_data['account_status_message'] = (
+                        f"Your account is {first_account.status}. "
+                        f"{'Contact support to reactivate.' if first_account.status == 'frozen' else 'This account cannot perform transactions.'}"
+                    )
+            else:
+                response_data['account_status_message'] = "No accounts found for this user."         
             return Response(response_data)
         except ObjectDoesNotExist:
             return Response(
