@@ -75,10 +75,10 @@ function Navbar({ token, onLogout, isSidebarOpen, toggleSidebar }) {
                 className="flex items-center space-x-2 group hover:scale-105 transition-transform duration-200"
               >
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-200">
-                  <span className="text-white font-bold text-sm">M</span>
+                  <span className="text-white font-bold text-sm">CGF</span>
                 </div>
                 <span className="text-white font-bold text-lg sm:text-xl group-hover:text-blue-400 transition-colors duration-200">
-                  Mani Banking
+                  CrownGate Financde
                 </span>
               </button>
             </div>

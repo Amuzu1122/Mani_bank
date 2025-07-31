@@ -54,10 +54,10 @@ function Home() {
             className="flex items-center space-x-2 group hover:scale-105 transition-transform duration-200"
           >
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-200">
-              <span className="text-white font-bold text-sm">M</span>
+              <span className="text-white font-bold text-sm">CGF</span>
             </div>
             <span className="text-white font-bold text-xl group-hover:text-blue-400 transition-colors duration-200">
-              Mani Banking
+              CrownGate Finance
             </span>
           </button>
         </div>
@@ -170,7 +170,7 @@ function Home() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Why Choose Mani Banking?
+            Why Choose CrownGate Finance?
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             Advanced technology meets personalized service to deliver exceptional banking experiences
