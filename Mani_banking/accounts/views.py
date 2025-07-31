@@ -144,11 +144,12 @@ class TransactionCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         try:
-            account = self.request.user.account
+            accounts = self.request.user.accounts.all()
             if not self.request.user.is_email_verified:
                 raise PermissionDenied("Email verification required to create transactions.")
-            if account.status != 'active':
-                raise PermissionDenied(f"Cannot create transactions for a {account.status} account.")
+            for account in accounts:
+                if account.status != 'active':
+                    raise PermissionDenied(f"Cannot create transactions for a {account.status} account.")
             serializer.save(account=account, created_by=self.request.user)
         except ObjectDoesNotExist:
             raise NotFound("User account not found.")
@@ -172,12 +173,11 @@ class TransactionListView(generics.ListAPIView):
             user = self.request.user
             if not user.is_email_verified:
                 raise PermissionDenied("Email verification required to view transactions.")
-            account = user.account
-            if account.status != 'active':
-                raise PermissionDenied(f"Cannot view transactions for a {account.status} account.")
-            
-            queryset = account.transactions.all()
-            
+            accounts = user.accounts.all()
+            for account in accounts:
+                if account.status != 'active':
+                    raise PermissionDenied(f"Cannot view transactions for a {account.status} account.")
+            queryset = Transaction.objects.filter(account__in=accounts)
             transaction_type = self.request.query_params.get('type')
             status = self.request.query_params.get('status')
             date_from = self.request.query_params.get('date_from')

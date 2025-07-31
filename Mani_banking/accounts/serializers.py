@@ -45,8 +45,8 @@ class AccountSerializer(serializers.ModelSerializer):
         return TransactionSerializer(recent_transactions, many=True).data
 
 class UserDashboardSerializer(serializers.ModelSerializer):
-    account = AccountSerializer(many = True, read_only=True)
+    accounts = AccountSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'is_email_verified', 'accounts', 'transactions']
+        fields = ['first_name', 'last_name', 'email', 'accounts']
