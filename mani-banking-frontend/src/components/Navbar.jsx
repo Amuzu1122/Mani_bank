@@ -219,7 +219,7 @@ function Navbar({ token, onLogout, isSidebarOpen, toggleSidebar }) {
         @keyframes fade-in {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-11px);
           }
           to {
             opacity: 1;
