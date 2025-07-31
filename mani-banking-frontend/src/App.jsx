@@ -50,7 +50,7 @@ function App() {
                     token={token} 
                     onLogout={handleLogout} 
                     isSidebarOpen={isSidebarOpen} 
-                    toggleSidebar={toggleSidebar} 
+                    setIsSidebarOpen={setIsSidebarOpen} 
                   />
                 </ErrorBoundary>
               } />
